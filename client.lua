@@ -20,7 +20,7 @@ RegisterCommand("afk", function(source, args)
     else
         afkReason = table.concat(args, " ")
         afk = true
-        SetEntityAlpha(ped, 150, false) -- Opaco
+        SetEntityAlpha(ped, 150, false)
         SetEntityCollision(ped, false, false)
         FreezeEntityPosition(ped, true)
         TriggerServerEvent("afk:setStatus", true, afkReason)
@@ -33,13 +33,6 @@ end, false)
 
 RegisterNetEvent("afk:resetStatus")
 AddEventHandler("afk:resetStatus", function()
-    afk = false
-    afkReason = ""
-    
-    local ped = PlayerPedId()
-    ResetEntityAlpha(ped)
-    SetEntityCollision(ped, true, true)
-    FreezeEntityPosition(ped, false)
 end)
 
 Citizen.CreateThread(function()
@@ -69,22 +62,18 @@ end
 
 Citizen.CreateThread(function()
     while true do
-        Citizen.Wait(10000)
+        Citizen.Wait(5000)
         local ped = PlayerPedId()
         local coords = GetEntityCoords(ped)
-
-        if lastPosition then
-            if #(coords - lastPosition) > 0.1 then
-                lastMoveTime = GetGameTimer()
-                if afk then
-                    TriggerEvent("afk:resetStatus")
-                    TriggerServerEvent("afk:setStatus", false, "")
-                end
+        if not afk and lastPosition then
+            if #(coords - lastPosition) < 0.1 and (GetGameTimer() - lastMoveTime > 5 * 60 * 1000) then
+                TriggerServerEvent("afk:kickPlayer")
+                TriggerEvent("chat:addMessage", {
+                    color = {255, 0, 0},
+                    args = {"AFK", "Te han expulsado por estar inactivo demasiado tiempo sin estar en modo AFK."}
+                })
             end
         end
         lastPosition = coords
-        if not afk and (GetGameTimer() - lastMoveTime > 5 * 60 * 1000) then
-            TriggerServerEvent("afk:kickPlayer")
-        end
     end
 end)
