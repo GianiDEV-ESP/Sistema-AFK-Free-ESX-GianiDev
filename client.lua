@@ -1,7 +1,7 @@
 local afk = false
 local afkReason = ""
 local lastPosition = nil
-local lastMoveTime = GetGameTimer()
+
 
 RegisterCommand("afk", function(source, args)
     local ped = PlayerPedId()
@@ -60,20 +60,4 @@ function DrawText3D(x, y, z, text)
     end
 end
 
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(5000)
-        local ped = PlayerPedId()
-        local coords = GetEntityCoords(ped)
-        if not afk and lastPosition then
-            if #(coords - lastPosition) < 0.1 and (GetGameTimer() - lastMoveTime > 5 * 60 * 1000) then
-                TriggerServerEvent("afk:kickPlayer")
-                TriggerEvent("chat:addMessage", {
-                    color = {255, 0, 0},
-                    args = {"AFK", "Te han expulsado por estar inactivo demasiado tiempo sin estar en modo AFK."}
-                })
-            end
-        end
-        lastPosition = coords
-    end
-end)
+
